@@ -44,7 +44,7 @@ Y_Pred = random_forest_Q.predict(X_test)
 
 test_mse = mean_squared_error(Y_Pred, Y_test)
 print(f"Test MSE of fit model {test_mse}") 
-baseline_mse=mean_squared_error(y_train.mean()*np.ones_like(Y_test), Y_test)
+baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
 print(f"Test MSE of no-covariate model {baseline_mse}")
 
 """
@@ -79,7 +79,6 @@ A_pred = g_model.predict_proba(X_test)[:,1]
 test_cross_entropy = log_loss(A_test, A_pred)
 baseline_cross_entropy = log_loss(A_test, A_Train.mean()*np.ones_like(A_test))
 
-"""
 # could do cross fitting here? Idt it will work tho 
 
 # Double ML estimator for ATT
