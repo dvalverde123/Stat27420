@@ -1,33 +1,45 @@
 import numpy as np
 import pandas as pd
 import scipy as sp
-import matplotlib as plt
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
-from xgboost import XGBClassifier, XGBRegressor
 import sklearn
 import os
-from austen_plots.AustenPlot import AustenPlot
-from doubleml import DoubleMLData
-from doubleml import DoubleMLPLR
-import doubleml as dml
+import matplotlib as plt
+#from xgboost import XGBClassifier, XGBRegressor
+#from austen_plots.AustenPlot import AustenPlot
+#from doubleml import DoubleMLData
+#from doubleml import DoubleMLPLR
+#import doubleml as dml
 
-crime_data_2002_2010 = pd.read_csv("2002-2010_crimes.csv")
+"""
+crime_data_2002_2010 = pd.read_csv("../data/2002-2010_crimes.csv")
 crime_data_small_2002_2010 = crime_data_2002_2010[["Year", "Community Area"]]
 grouped_2002_2010 = crime_data_small_2002_2010.groupby(["Year", "Community Area"]).size()
 grouped_2002_2010.to_csv('2002_2010_crime_groupings.csv')
-crime_data_2011_2020 = pd.read_csv("2011-2020_crimes.csv")
+
+crime_data_2011_2020 = pd.read_csv("data/2011-2020_crimes.csv")
 crime_data_small_2011_2020 = crime_data_2011_2020[["Year", "Community Area"]]
 grouped_2011_2020 = crime_data_small_2011_2020.groupby(["Year", "Community Area"]).size()
 grouped_2011_2020.to_csv('2011_2020_crime_groupings.csv')
+"""
+
+# not really sure which columns you wanna use for confounders and which is outcome
+
+crime_data = pd.read_csv("CLEANED_DATA.csv")
+confounders = crime_data["Birth Rate", "Assault"]
+outcome = crime_data["HARDSHIP INDEX"]
+treatment = crime_data["Treatment"]
+
 
 # create nuisance functions 
 
-RANDOM_SEED = 12194292
+RANDOM_SEED = 12345
 np.random.seed(RANDOM_SEED)
 
+"""
 # random forest model 
 def create_random_forest_Q():
     return RandomForestRegressor(random_state = RANDOM_SEED, n_estimators = 500)
@@ -61,7 +73,7 @@ baseline_MSE = mean_squared_error(y_train.mean()*np.ones_like(Y_test), Y_test)
 # propensity scores model 
 
 def create_g():
-    return Logistic Regression(max_iter=1000)
+    return Logistic_Regression(max_iter=1000)
     return RandomForestClassifier(n_estimators=100, max_depth=5)
 g_model = create_g()
 
@@ -113,4 +125,5 @@ nuisance_estimates[group] = data_nuisance_estimates
 austen_plot = AustenPlot(data_nuisance, covariate_path)
 p, plot_cooredinates, variable_coordinates = austen_plot.fit(bias = target_bias)
 
+"""
 
