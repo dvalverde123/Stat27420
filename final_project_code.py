@@ -52,6 +52,7 @@ def create_random_forest_Q():
     return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 
 random_forest_Q = create_random_forest_Q()
+outcome, treatment = define_variables("2004")
 
 X_w_treatment = confounders.copy()
 X_w_treatment['treatment'] = treatment
