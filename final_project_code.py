@@ -18,9 +18,27 @@ import matplotlib as plt
 # not really sure which columns you wanna use for confounders and which is outcome
 
 crime_data = pd.read_csv("CLEANED_DATA.csv")
-confounders = crime_data["Birth Rate", "Assault"]
-outcome = crime_data["HARDSHIP INDEX"]
-treatment = crime_data["Treatment"]
+confounders = crime_data["Birth Rate"] # and whatever other confounders we decide
+
+def define_variables(year):
+    """
+    Define treatment and outcome for a given year
+
+    Input:
+        year (string): year of school closing
+    
+    Return:
+        treatment
+        outcome
+    """
+
+    outcome_year = int(year) + 5
+
+    treatment = crime_data["Treatment_" + year]
+    outcome = crime_data["Crime_" + str(outcome_year)]
+
+    return treatment, outcome
+    
 
 RANDOM_SEED = 12345
 np.random.seed(RANDOM_SEED)
