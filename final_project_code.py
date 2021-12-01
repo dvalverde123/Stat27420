@@ -14,17 +14,6 @@ import matplotlib as plt
 #from doubleml import DoubleMLPLR
 #import doubleml as dml
 
-"""
-crime_data_2002_2010 = pd.read_csv("../data/2002-2010_crimes.csv")
-crime_data_small_2002_2010 = crime_data_2002_2010[["Year", "Community Area"]]
-grouped_2002_2010 = crime_data_small_2002_2010.groupby(["Year", "Community Area"]).size()
-grouped_2002_2010.to_csv('2002_2010_crime_groupings.csv')
-
-crime_data_2011_2020 = pd.read_csv("data/2011-2020_crimes.csv")
-crime_data_small_2011_2020 = crime_data_2011_2020[["Year", "Community Area"]]
-grouped_2011_2020 = crime_data_small_2011_2020.groupby(["Year", "Community Area"]).size()
-grouped_2011_2020.to_csv('2011_2020_crime_groupings.csv')
-"""
 
 # not really sure which columns you wanna use for confounders and which is outcome
 
@@ -33,19 +22,32 @@ confounders = crime_data["Birth Rate", "Assault"]
 outcome = crime_data["HARDSHIP INDEX"]
 treatment = crime_data["Treatment"]
 
-
-# create nuisance functions 
-
 RANDOM_SEED = 12345
 np.random.seed(RANDOM_SEED)
 
-"""
-# random forest model 
+# specify nuisance function models 
+
+# choose model for the conditional expected outcome
+
+# random forest model that returns sklearn model for later use in k-folding
 def create_random_forest_Q():
-    return RandomForestRegressor(random_state = RANDOM_SEED, n_estimators = 500)
+    return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 
 random_forest_Q = create_random_forest_Q()
 
+X_w_treatment = confounders.copy()
+X_w_treatment['treatment'] = treatment
+
+X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
+random_forest_Q.fit(X_train, Y_train)
+Y_Pred = random_forest_Q.predict(X_test)
+
+test_mse = mean_squared_error(Y_Pred, Y_test)
+print(f"Test MSE of fit model {test_mse}") 
+baseline_mse=mean_squared_error(y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse}")
+
+"""
 # gradient boosting model 
 def create_xgb_Q():
     return XGBClassifier()
@@ -58,17 +60,10 @@ def create_ols_Q():
 def create_LASSO():
     return LASSO
 
-X_w_treatment = confounders.copy()
-X_w_treatment['treatment'] = treatment
 
-X_train, X_trest, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size = 0.2)
-random_forest_Q.fit(X_train, Y_train)
 xgb_Q_fit(X_train, Y_train)
 ols_Q_fit(X_train, Y_train)
 LASSO_Q_fit(X_train, Y_train)
-
-fit_MSE = mean_squared_error(Y_pred, Y_test)
-baseline_MSE = mean_squared_error(y_train.mean()*np.ones_like(Y_test), Y_test)
 
 # propensity scores model 
 
@@ -84,6 +79,7 @@ A_pred = g_model.predict_proba(X_test)[:,1]
 test_cross_entropy = log_loss(A_test, A_pred)
 baseline_cross_entropy = log_loss(A_test, A_Train.mean()*np.ones_like(A_test))
 
+"""
 # could do cross fitting here? Idt it will work tho 
 
 # Double ML estimator for ATT
