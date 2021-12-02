@@ -8,14 +8,13 @@ from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
 import os
 import matplotlib as plt
-#from xgboost import XGBClassifier, XGBRegressor
+import xgboost as xgb
+from xgboost import XGBClassifier, XGBRegressor
 #from austen_plots.AustenPlot import AustenPlot
 #from doubleml import DoubleMLData
 #from doubleml import DoubleMLPLR
 #import doubleml as dml
 
-
-# not really sure which columns you wanna use for confounders and which is outcome
 
 crime_data = pd.read_csv("CLEANED_DATA.csv")
 
@@ -29,6 +28,7 @@ def define_variables(year):
     Return:
         treatment
         outcome
+        confounders
     """
 
     outcome_year = int(year) + 5
@@ -49,8 +49,8 @@ np.random.seed(RANDOM_SEED)
 # choose model for the conditional expected outcome
 
 # random forest model that returns sklearn model for later use in k-folding
-def create_random_forest_Q():
-    return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
+# def create_random_forest_Q():
+#    return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 
 # gradient boosting model 
 #def create_xgb_Q():
@@ -67,8 +67,9 @@ def create_random_forest_Q():
 #def create_k_nearest_neighbors_Q():
     #return 'HI'
 
+# random_forest
 
-random_forest_Q = create_random_forest_Q()
+random_forest_Q = RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 outcome, treatment, confounders = define_variables("2004")
 
 X_w_treatment = confounders.copy()
