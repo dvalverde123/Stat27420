@@ -18,7 +18,8 @@ import matplotlib as plt
 # not really sure which columns you wanna use for confounders and which is outcome
 
 crime_data = pd.read_csv("CLEANED_DATA.csv")
-confounders = crime_data["Birth Rate"] # and whatever other confounders we decide
+confounders = crime_data["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide",
+"Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"] # and whatever other confounders we decide
 
 def define_variables(year):
     """
@@ -51,6 +52,22 @@ np.random.seed(RANDOM_SEED)
 def create_random_forest_Q():
     return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 
+# gradient boosting model 
+#def create_xgb_Q():
+    #return XGBClassifier
+
+# linear regression model 
+# https://scikit-learn.org/stable/modules/linear_model.html
+#def create_linear_regression_Q():
+    #return "hi"
+
+
+# k-nearest_neighbors
+# https://scikit-learn.org/stable/modules/neighbors.html
+#def create_k_nearest_neighbors_Q():
+    #return 'HI'
+
+
 random_forest_Q = create_random_forest_Q()
 outcome, treatment = define_variables("2004")
 
@@ -61,29 +78,35 @@ X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test
 random_forest_Q.fit(X_train, Y_train)
 Y_Pred = random_forest_Q.predict(X_test)
 
+
 test_mse = mean_squared_error(Y_Pred, Y_test)
 print(f"Test MSE of fit model {test_mse}") 
 baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
 print(f"Test MSE of no-covariate model {baseline_mse}")
 
+# gradient boosting 
+xgb_Q = create_xgb_Q.fit(X_train, Y_train)
+XGB_Y_Pred = xgb_Q.predict(X_test)
+test_mse = mean_squared_error(Y_Pred, Y_test)
+print(f"Test MSE of fit model {test_mse}") 
+baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse}")
+
+# linear regression 
+regression_Q = create_linear_regression_Q.fit(X_train, Y_train)
+regression_Y_Pred = regression_Q.predict(X_test)
+test_mse = mean_squared_error(Y_Pred, Y_test)
+print(f"Test MSE of fit model {test_mse}") 
+baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse}")
+
+# k nearest neighbords 
+
+
+# model evaluation
+# cross validation sci kit learn package? 
+
 """
-# gradient boosting model 
-def create_xgb_Q():
-    return XGBClassifier()
-
-# OLS
-def create_ols_Q():
-    return OLS
-
-# LASSO
-def create_LASSO():
-    return LASSO
-
-
-xgb_Q_fit(X_train, Y_train)
-ols_Q_fit(X_train, Y_train)
-LASSO_Q_fit(X_train, Y_train)
-
 # propensity scores model 
 
 def create_g():
