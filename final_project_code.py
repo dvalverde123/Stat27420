@@ -18,8 +18,6 @@ import matplotlib as plt
 # not really sure which columns you wanna use for confounders and which is outcome
 
 crime_data = pd.read_csv("CLEANED_DATA.csv")
-confounders = crime_data["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide",
-"Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"] # and whatever other confounders we decide
 
 def define_variables(year):
     """
@@ -37,8 +35,10 @@ def define_variables(year):
 
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data["Crime_" + str(outcome_year)]
+    confounders = crime_data["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide", 
+        "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"]
 
-    return treatment, outcome
+    return treatment, outcome, confounders
     
 
 RANDOM_SEED = 12345
@@ -69,7 +69,7 @@ def create_random_forest_Q():
 
 
 random_forest_Q = create_random_forest_Q()
-outcome, treatment = define_variables("2004")
+outcome, treatment, confounders = define_variables("2004")
 
 X_w_treatment = confounders.copy()
 X_w_treatment['treatment'] = treatment
