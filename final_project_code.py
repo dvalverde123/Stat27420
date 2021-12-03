@@ -118,7 +118,7 @@ A_pred = g_model.predict_proba(X_test)[:,1]
 test_cross_entropy = log_loss(A_test, A_pred)
 baseline_cross_entropy = log_loss(A_test, A_Train.mean()*np.ones_like(A_test))
 
-# could do cross fitting here? Idt it will work tho 
+# cross fitting 
 
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
