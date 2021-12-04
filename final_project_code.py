@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -35,8 +35,8 @@ def define_variables(year):
 
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data["Crime_" + str(outcome_year)]
-    confounders = crime_data["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide", 
-        "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"]
+    confounders = crime_data[["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide)", 
+        "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"]]
 
     return treatment, outcome, confounders
     
@@ -55,7 +55,8 @@ def create_xgb_Q():
 # linear regression model 
 # https://scikit-learn.org/stable/modules/linear_model.html
 def create_linear_regression_Q():
-    return "hi"
+    reg = LinearRegression()
+    return reg
 
 
 # k-nearest_neighbors
@@ -66,7 +67,7 @@ def create_k_nearest_neighbors_Q():
 # random_forest
 
 random_forest_Q = RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
-outcome, treatment, confounders = define_variables("2004")
+treatment, outcome, confounders = define_variables("2004")
 
 X_w_treatment = confounders.copy()
 X_w_treatment['treatment'] = treatment
