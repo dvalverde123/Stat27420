@@ -104,6 +104,45 @@ print(f"Test MSE of no-covariate model {baseline_mse_lr}")
 # model evaluation
 # cross validation sci kit learn package? 
 
+# diff in diff data cleaning 
+'''
+# 2004 school closings 
+
+# original data
+2004_closed = crime_data['Treatment_2004'].is_equalto(1)
+crime_data['Treatment_2004']=2004_closed 
+
+# after treatment
+compact_df=crime_data[~crime_data['2004_closed']]
+crime_rate_changes = crime_data['2009_cr_per_100k'].values
+compact_df['Y5-Y0'] 
+
+# format for ideal ATT processing 
+compact_df = compact_df.reset_index()
+
+outcome = compact_df['2009-2004']
+treatment = compact_df['2004_closed']
+confounders = compact_df[['all of them']]
+
+# 2013 school closings 
+
+# original data
+2013_closed = crime_data['Treatment_2013'].is_equalto(1)
+crime_data['Treatment_2013']=2013_closed
+
+# after treatment 
+compact_df=crime_data[~crime_data['2013_closed']]
+crime_rate_changes = crime_data['2018_cr_per_100k'].values
+compact_df['Y5-Y0']=crime_rate_changes[~crime_data['2013_closed']] - crime_rate_changes[crime_data['2013_closed']]
+
+# format for ATT processing 
+compact_df = compact_df.reset_index()
+
+outcome = compact_df['Y5-Y0']
+treatment = compact_df['Treatment_2013']
+confounders = compact_df[['all of them']]
+'''
+
 """
 # propensity scores model 
 
