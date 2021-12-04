@@ -64,39 +64,39 @@ np.random.seed(RANDOM_SEED)
 def create_k_nearest_neighbors_Q():
     return 'HI'
 
-# random_forest
-
-random_forest_Q = RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 treatment, outcome, confounders = define_variables("2004")
 
 X_w_treatment = confounders.copy()
 X_w_treatment['treatment'] = treatment
-
 X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
+
+# random_forest
+random_forest_Q = RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 random_forest_Q.fit(X_train, Y_train)
 Y_Pred = random_forest_Q.predict(X_test)
 
-
-test_mse = mean_squared_error(Y_Pred, Y_test)
-print(f"Test MSE of fit model {test_mse}") 
-baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
-print(f"Test MSE of no-covariate model {baseline_mse}")
+test_mse_rf = mean_squared_error(Y_Pred, Y_test)
+print(f"Test MSE of fit model {test_mse_rf}") 
+baseline_mse_rf = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse_rf}")
 
 # gradient boosting 
 xgb_Q = XGBClassifier().fit(X_train, Y_train)
 XGB_Y_Pred = xgb_Q.predict(X_test)
-test_mse = mean_squared_error(Y_Pred, Y_test)
-print(f"Test MSE of fit model {test_mse}") 
-baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
-print(f"Test MSE of no-covariate model {baseline_mse}")
+
+test_mse_xgb = mean_squared_error(Y_Pred, Y_test)
+print(f"Test MSE of fit model {test_mse_xgb}") 
+baseline_mse_xgb = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse_xgb}")
 
 # linear regression 
 regression_Q = LinearRegression().fit(X_train, Y_train)
 regression_Y_Pred = regression_Q.predict(X_test)
-test_mse = mean_squared_error(Y_Pred, Y_test)
-print(f"Test MSE of fit model {test_mse}") 
-baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
-print(f"Test MSE of no-covariate model {baseline_mse}")
+
+test_mse_lr = mean_squared_error(Y_Pred, Y_test)
+print(f"Test MSE of fit model {test_mse_lr}") 
+baseline_mse_lr = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse_lr}")
 
 # k nearest neighbors 
 
