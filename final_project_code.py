@@ -3,6 +3,7 @@ import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -44,15 +45,7 @@ def define_variables(year):
 RANDOM_SEED = 12345
 np.random.seed(RANDOM_SEED)
 
-# specify nuisance function models 
-
 # choose model for the conditional expected outcome
-
-# k-nearest_neighbors
-# https://scikit-learn.org/stable/modules/neighbors.html
-
-# def create_k_nearest_neighbors_Q():
-    # return 'HI'
 
 treatment, outcome, confounders = define_variables("2004")
 
@@ -89,6 +82,14 @@ baseline_mse_lr = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test
 print(f"Test MSE of no-covariate model {baseline_mse_lr}")
 
 # k nearest neighbors 
+knn_Q = KNeighborsRegressor().fit(X_train, Y_train)
+knn_Y_Pred = knn_Q.predict(X_test)
+
+test_mse_knn = mean_squared_error(knn_Y_Pred, Y_test)
+print(f"Test MSE of k-nearest neighbors model {test_mse_knn}")
+baseline_mse_knn = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse_knn}")
+
 
 # diff in diff data cleaning 
 '''
