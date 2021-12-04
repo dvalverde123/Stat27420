@@ -49,14 +49,14 @@ np.random.seed(RANDOM_SEED)
 # choose model for the conditional expected outcome
 
 # gradient boosting model 
-def create_xgb_Q():
-    return XGBClassifier
+# def create_xgb_Q():
+    # return XGBClassifier()
 
 # linear regression model 
 # https://scikit-learn.org/stable/modules/linear_model.html
-def create_linear_regression_Q():
-    reg = LinearRegression()
-    return reg
+# def create_linear_regression_Q():
+    # reg = LinearRegression()
+    # return reg
 
 
 # k-nearest_neighbors
@@ -83,7 +83,7 @@ baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
 print(f"Test MSE of no-covariate model {baseline_mse}")
 
 # gradient boosting 
-xgb_Q = create_xgb_Q.fit(X_train, Y_train)
+xgb_Q = XGBClassifier().fit(X_train, Y_train)
 XGB_Y_Pred = xgb_Q.predict(X_test)
 test_mse = mean_squared_error(Y_Pred, Y_test)
 print(f"Test MSE of fit model {test_mse}") 
@@ -91,14 +91,14 @@ baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
 print(f"Test MSE of no-covariate model {baseline_mse}")
 
 # linear regression 
-regression_Q = create_linear_regression_Q.fit(X_train, Y_train)
+regression_Q = LinearRegression().fit(X_train, Y_train)
 regression_Y_Pred = regression_Q.predict(X_test)
 test_mse = mean_squared_error(Y_Pred, Y_test)
 print(f"Test MSE of fit model {test_mse}") 
 baseline_mse=mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
 print(f"Test MSE of no-covariate model {baseline_mse}")
 
-# k nearest neighbords 
+# k nearest neighbors 
 
 
 # model evaluation
