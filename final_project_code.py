@@ -48,21 +48,11 @@ np.random.seed(RANDOM_SEED)
 
 # choose model for the conditional expected outcome
 
-# gradient boosting model 
-# def create_xgb_Q():
-    # return XGBClassifier()
-
-# linear regression model 
-# https://scikit-learn.org/stable/modules/linear_model.html
-# def create_linear_regression_Q():
-    # reg = LinearRegression()
-    # return reg
-
-
 # k-nearest_neighbors
 # https://scikit-learn.org/stable/modules/neighbors.html
-def create_k_nearest_neighbors_Q():
-    return 'HI'
+
+# def create_k_nearest_neighbors_Q():
+    # return 'HI'
 
 treatment, outcome, confounders = define_variables("2004")
 
