@@ -34,7 +34,7 @@ def define_variables(year):
     outcome_year = int(year) + 5
 
     treatment = crime_data["Treatment_" + year]
-    outcome = crime_data["Crime_" + str(outcome_year)]
+    outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
     confounders = crime_data[["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide)", 
         "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"]]
 
@@ -90,22 +90,18 @@ print(f"Test MSE of no-covariate model {baseline_mse_lr}")
 
 # k nearest neighbors 
 
-
-# model evaluation
-# cross validation sci kit learn package? 
-
 # diff in diff data cleaning 
 '''
 # 2004 school closings 
 
-# original data
+# before period
 2004_closed = crime_data['Treatment_2004'].is_equalto(1)
 crime_data['Treatment_2004']=2004_closed 
 
 # after treatment
 compact_df=crime_data[~crime_data['2004_closed']]
 crime_rate_changes = crime_data['2009_cr_per_100k'].values
-compact_df['Y5-Y0'] 
+compact_df['2009-2004'] = crime_data['2009_cr_per_100k'] - crime_data['2004_cr_per_100k']
 
 # format for ideal ATT processing 
 compact_df = compact_df.reset_index()
@@ -118,28 +114,25 @@ confounders = compact_df[['all of them']]
 
 # original data
 2013_closed = crime_data['Treatment_2013'].is_equalto(1)
-crime_data['Treatment_2013']=2013_closed
+crime_data['Treatment_2004']=2013_closed 
 
-# after treatment 
+# after treatment
 compact_df=crime_data[~crime_data['2013_closed']]
 crime_rate_changes = crime_data['2018_cr_per_100k'].values
-compact_df['Y5-Y0']=crime_rate_changes[~crime_data['2013_closed']] - crime_rate_changes[crime_data['2013_closed']]
+compact_df['2018-2013'] = crime_data['2018_cr_per_100k'] - crime_data['2013_cr_per_100k']
 
-# format for ATT processing 
+# format for ideal ATT processing 
 compact_df = compact_df.reset_index()
 
-outcome = compact_df['Y5-Y0']
-treatment = compact_df['Treatment_2013']
+outcome = compact_df['2018-2013']
+treatment = compact_df['2013_closed']
 confounders = compact_df[['all of them']]
 '''
 
 """
-# propensity scores model 
+# propensity scores model
 
-def create_g():
-    return Logistic_Regression(max_iter=1000)
-    return RandomForestClassifier(n_estimators=100, max_depth=5)
-g_model = create_g()
+
 
 X_train, X_test, A_train, A_test = train_test_split(confounders, treatment)
 g_model.fit(X_train, A_train)
@@ -148,7 +141,7 @@ A_pred = g_model.predict_proba(X_test)[:,1]
 test_cross_entropy = log_loss(A_test, A_pred)
 baseline_cross_entropy = log_loss(A_test, A_Train.mean()*np.ones_like(A_test))
 
-# cross fitting 
+# cross fitting function definitions 
 
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
@@ -235,13 +228,10 @@ print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
 
-# Double ML Library Estimation Procedure 
-
-
-
 # Differences in Differences Estimation 
 
 tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
+print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 
 # point estimate without covariate correction
 
