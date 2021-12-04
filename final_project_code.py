@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -129,19 +129,37 @@ treatment = compact_df['2013_closed']
 confounders = compact_df[['all of them']]
 '''
 
-"""
+
 # propensity scores model
 
-
-
 X_train, X_test, A_train, A_test = train_test_split(confounders, treatment)
-g_model.fit(X_train, A_train)
-A_pred = g_model.predict_proba(X_test)[:,1]
 
-test_cross_entropy = log_loss(A_test, A_pred)
-baseline_cross_entropy = log_loss(A_test, A_Train.mean()*np.ones_like(A_test))
+random_forest_g= RandomForestClassifier(n_estimators=100, max_depth=2)
+random_forest_g.fit(X_train, A_train)
+RF_A_Pred = random_forest_g.predict_proba(X_test)[:,1]
+test_cross_entropy = log_loss(A_test, RF_A_Pred)
+print(f"Test CE of fit model {test_cross_entropy}") 
+baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
+print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
-# cross fitting function definitions 
+# gradient boosting 
+xgb_g = XGBClassifier().fit(X_train, A_train)
+XGB_A_Pred = xgb_g.predict_proba(X_test)
+test_cross_entropy = log_loss(A_test, XGB_A_Pred)
+print(f"Test CE of fit model {test_cross_entropy}") 
+baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
+print(f"Test CE of no-covariate model {baseline_cross_entropy}")
+
+# linear regression 
+regression_g = LogisticRegression(max_iter=1000).fit(X_train, A_train)
+regression_A_Pred = regression_g.predict_proba(X_test)
+print(f"Test CE of fit model {test_cross_entropy}") 
+test_cross_entropy = log_loss(A_test, regression_A_Pred)
+baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
+print(f"Test CE of no-covariate model {baseline_cross_entropy}")
+# we choose the XGB model for the propensity score 
+
+#g_model = XGBClassifier().fit(X_train, A_train)
 
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
@@ -158,7 +176,7 @@ def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_split
     assert np.isnan(predictions).sum() == 0
     return predictions
 
-def outcome_k_fold_fit_predict:
+def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.array, n_splits:int, output_type:str):
     predictions0 = np.full_like(A, np.nan, dtype=float)
     predictions1 = np.full_like(y, np.nan, dtype=float)
     if output_type == 'binary':
@@ -191,12 +209,12 @@ def outcome_k_fold_fit_predict:
     assert np.isnan(predictions1).sum() == 0
     return predictions0, predictions1
 
-g = treatment_k_fold_fit_predict(make_g_model, X=confounders, A=treatment, n_splits=10)
+#g = treatment_k_fold_fit_predict(make_g_model, X=confounders, A=treatment, n_splits=10)
 
-Q0,Q1=outcome_k_fold_fit_predict(make_Q_model, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
+#Q0,Q1=outcome_k_fold_fit_predict(make_Q_model, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
 
-data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
-data_nuisance_estimates.head()
+#data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
+#data_nuisance_estimates.head()
 
 
 
@@ -220,13 +238,15 @@ def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     
     return tau_hat, std_hat
 
-in_treated = data_nuisance_estimates['A']==1
-treated_estimates = data_nuisance_estimates[in_treated]
-tau_hat, std_hat = ate_aiptw(**treated_estimates)
+#in_treated = data_nuisance_estimates['A']==1
+#treated_estimates = data_nuisance_estimates[in_treated]
+#tau_hat, std_hat = ate_aiptw(**treated_estimates)
 
-print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
+#print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
+
+"""
 
 # Differences in Differences Estimation 
 
