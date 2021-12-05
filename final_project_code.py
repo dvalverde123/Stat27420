@@ -2,7 +2,13 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+<<<<<<< HEAD
 from sklearn.linear_model import LinearRegression, LogisticRegression, LogisticRegressionCV, RidgeClassifier, RidgeClassifierCV
+=======
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression
+>>>>>>> 83652c0fea1b0559e5ac5b527177098a8c34d161
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -44,15 +50,7 @@ def define_variables(year):
 RANDOM_SEED = 12345
 np.random.seed(RANDOM_SEED)
 
-# specify nuisance function models 
-
 # choose model for the conditional expected outcome
-
-# k-nearest_neighbors
-# https://scikit-learn.org/stable/modules/neighbors.html
-
-# def create_k_nearest_neighbors_Q():
-    # return 'HI'
 
 treatment, outcome, confounders = define_variables("2004")
 
@@ -67,8 +65,6 @@ RF_Y_Pred = random_forest_Q.predict(X_test)
 
 test_mse_rf = mean_squared_error(RF_Y_Pred, Y_test)
 print(f"Test MSE of random forest model {test_mse_rf}") 
-baseline_mse_rf = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
-print(f"Test MSE of no-covariate model {baseline_mse_rf}")
 
 # gradient boosting 
 xgb_Q = XGBRegressor().fit(X_train, Y_train)
@@ -76,8 +72,6 @@ XGB_Y_Pred = xgb_Q.predict(X_test)
 
 test_mse_xgb = mean_squared_error(XGB_Y_Pred, Y_test)
 print(f"Test MSE of gradient boosting model {test_mse_xgb}") 
-baseline_mse_xgb = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
-print(f"Test MSE of no-covariate model {baseline_mse_xgb}")
 
 # linear regression 
 regression_Q = LinearRegression().fit(X_train, Y_train)
@@ -85,10 +79,21 @@ regression_Y_Pred = regression_Q.predict(X_test)
 
 test_mse_lr = mean_squared_error(regression_Y_Pred, Y_test)
 print(f"Test MSE of linear regression model {test_mse_lr}") 
-baseline_mse_lr = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
-print(f"Test MSE of no-covariate model {baseline_mse_lr}")
 
 # k nearest neighbors 
+knn_Q = KNeighborsRegressor().fit(X_train, Y_train)
+knn_Y_Pred = knn_Q.predict(X_test)
+
+test_mse_knn = mean_squared_error(knn_Y_Pred, Y_test)
+print(f"Test MSE of k-nearest neighbors model {test_mse_knn}")
+
+# baseline MSE
+
+baseline_mse_knn = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
+print(f"Test MSE of no-covariate model {baseline_mse_knn}")
+
+# XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
+
 
 # diff in diff data cleaning 
 '''
@@ -134,6 +139,7 @@ confounders = compact_df[['all of them']]
 
 X_train, X_test, A_train, A_test = train_test_split(confounders, treatment)
 
+# random forest 
 random_forest_g= RandomForestClassifier(n_estimators=100, max_depth=2)
 random_forest_g.fit(X_train, A_train)
 RF_A_Pred = random_forest_g.predict_proba(X_test)[:,1]
@@ -157,24 +163,36 @@ test_cross_entropy = log_loss(A_test, regression_A_Pred)
 print(f"Test CE of fit model {test_cross_entropy}") 
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
+<<<<<<< HEAD
 
 g_model = XGBClassifier().fit(X_train, A_train)
 
 X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
 Q_model = XGBRegressor().fit(X_train, Y_train)
+=======
+
+# we choose the XGB model for the propensity score 
+
+# g_model = XGBClassifier().fit(X_train, A_train)
+
+# Use cross fitting to get predicted outcomes and propensity scores for each unit
+>>>>>>> 83652c0fea1b0559e5ac5b527177098a8c34d161
 
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
     kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_SEED)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 83652c0fea1b0559e5ac5b527177098a8c34d161
     for train_index, test_index in kf.split(X,A):
         X_train = X.loc[train_index]
         A_train = A.loc[train_index]
         g = make_model()
         g.fit(X_train, A_train)
 
-        predictions[test_index] = g.predict_proba(X.loc[test_idex])[:,1]
+        predictions[test_index] = g.predict_proba(X.loc[test_index])[:,1]
 
     assert np.isnan(predictions).sum() == 0
     return predictions
@@ -224,6 +242,7 @@ data_nuisance_estimates.head()
 
 
 # Double ML estimator for ATT
+"""
 def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     if prob_t is None:
         prob_t = A.mean()
@@ -232,6 +251,7 @@ def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     std_hat = np.std(scores) / np.sqrt(n)
     
     return tau_hat, std_hat
+"""
 
 # Double ML estimator for ATE 
 def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
