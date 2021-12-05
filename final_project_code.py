@@ -2,13 +2,11 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-<<<<<<< HEAD
 from sklearn.linear_model import LinearRegression, LogisticRegression, LogisticRegressionCV, RidgeClassifier, RidgeClassifierCV
-=======
+
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression, LogisticRegression
->>>>>>> 83652c0fea1b0559e5ac5b527177098a8c34d161
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -19,7 +17,6 @@ from xgboost import XGBClassifier, XGBRegressor
 #from austen_plots.AustenPlot import AustenPlot
 #from doubleml import DoubleMLData
 #from doubleml import DoubleMLPLR
-#import doubleml as dml
 
 
 crime_data = pd.read_csv("CLEANED_DATA.csv")
@@ -94,7 +91,9 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
-
+def make_Q_model():
+    return XGBRegressor()
+Q_model = make_Q_model()
 # diff in diff data cleaning 
 '''
 # 2004 school closings 
@@ -163,29 +162,26 @@ test_cross_entropy = log_loss(A_test, regression_A_Pred)
 print(f"Test CE of fit model {test_cross_entropy}") 
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
-<<<<<<< HEAD
 
-g_model = XGBClassifier().fit(X_train, A_train)
 
-X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
-Q_model = XGBRegressor().fit(X_train, Y_train)
-=======
+def make_G_model():
+    return XGBClassifier()
+g_model = make_G_model()
+
+#X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
+#Q_model = XGBRegressor().fit(X_train, Y_train)
+
 
 # we choose the XGB model for the propensity score 
 
-# g_model = XGBClassifier().fit(X_train, A_train)
+#g_model = XGBClassifier().fit(X_train, A_train)
 
 # Use cross fitting to get predicted outcomes and propensity scores for each unit
->>>>>>> 83652c0fea1b0559e5ac5b527177098a8c34d161
 
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
     kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_SEED)
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 83652c0fea1b0559e5ac5b527177098a8c34d161
     for train_index, test_index in kf.split(X,A):
         X_train = X.loc[train_index]
         A_train = A.loc[train_index]
@@ -233,9 +229,9 @@ def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.arra
     return predictions0, predictions1
 
 
-g = treatment_k_fold_fit_predict(g_model, X=confounders, A=treatment, n_splits=7)
+g = treatment_k_fold_fit_predict(XGBClassifier, X=confounders, A=treatment, n_splits=7)
 
-Q0,Q1=outcome_k_fold_fit_predict(Q_model, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
+Q0,Q1=outcome_k_fold_fit_predict(XGBRegressor, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
 
 data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
 data_nuisance_estimates.head()
