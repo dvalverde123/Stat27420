@@ -91,23 +91,22 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
-<<<<<<< HEAD
 def make_Q_model():
     return XGBRegressor()
+
 Q_model = make_Q_model()
 
 # diff in diff data cleaning 
 
-'''
-=======
 # diff in diff data cleaning 
 
->>>>>>> 5a51e23225fe347f71ce80eb697863be1c792f7a
 # 2004 school closings 
 
 # before period
+
+"""
 2004_closed = crime_data['Treatment_2004'].is_equalto(1)
-crime_data['Treatment_2004']=2004_closed 
+crime_data['Treatment_2004'] = 2004_closed 
 
 # after treatment
 compact_df=crime_data[~crime_data['2004_closed']]
@@ -125,7 +124,7 @@ confounders = compact_df[['all of them']]
 
 # original data
 2013_closed = crime_data['Treatment_2013'].is_equalto(1)
-crime_data['Treatment_2004']=2013_closed 
+crime_data['Treatment_2004'] = 2013_closed 
 
 # after treatment
 compact_df=crime_data[~crime_data['2013_closed']]
@@ -138,6 +137,8 @@ compact_df = compact_df.reset_index()
 outcome = compact_df['2018-2013']
 treatment = compact_df['2013_closed']
 confounders = compact_df[['all of them']]
+
+"""
 
 # propensity scores model
 
@@ -227,10 +228,7 @@ data_nuisance_estimates.head()
 
 
 # Double ML estimator for ATT
-<<<<<<< HEAD
-=======
 
->>>>>>> 5a51e23225fe347f71ce80eb697863be1c792f7a
 def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     if prob_t is None:
         prob_t = A.mean()
@@ -242,12 +240,9 @@ def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     std_hat = np.std(scores) / np.sqrt(n)
     
     return tau_hat, std_hat
-<<<<<<< HEAD
 
 tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
 print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
-=======
->>>>>>> 5a51e23225fe347f71ce80eb697863be1c792f7a
 
 # Double ML estimator for ATE 
 def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
@@ -281,6 +276,8 @@ outcome[treatment==1].mean()-outcome[treatment==0.mean()]
 # Sensitivity Analysis
 
 # create covariate groups 
+
+"""
 
 covariate_groups = {
     'economic': "Per Capita Income" "Hardship Index", "Below Poverty Level"
