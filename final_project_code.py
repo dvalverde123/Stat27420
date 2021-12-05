@@ -257,6 +257,11 @@ tau_hat, std_hat = ate_aiptw(**treated_estimates)
 print(f"The ATE estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
+g = data_nuisance_estimates['g']
+in_overlap_popluation = (g < 0.90)
+overlap_data_and_nuisance = data_nuisance_estimates[in_overlap_popluation]
+tau_hat, std_hat = att_aiptw(**overlap_data_and_nuisance)
+print(f"The ATT estimate with restricted population is {tau_hat} pm {1.96*std_hat}")
 
 """
 
