@@ -267,7 +267,7 @@ outcome[treatment==1].mean()-outcome[treatment==0.mean()]
 
 covariate_groups = {
     'economic': "Per Capita Income" "Hardship Index", "Below Poverty Level"
-    'population': "Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide)"
+    'population': "Birth Rate", "Pop_" + str(outcome_year) "Assault (Homicide)"
     #'age': "Males_age_15-25"
 }
 
