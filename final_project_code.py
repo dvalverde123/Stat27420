@@ -242,7 +242,7 @@ def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     return tau_hat, std_hat
 
 tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
-print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
+print(f"The ATT estimate is {tau_hat} pm {1.96*std_hat}")
 
 # Double ML estimator for ATE 
 def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
@@ -257,7 +257,7 @@ def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
 in_treated = data_nuisance_estimates['A']==1
 treated_estimates = data_nuisance_estimates[in_treated]
 tau_hat, std_hat = ate_aiptw(**treated_estimates)
-print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
+print(f"The ATE estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
 
