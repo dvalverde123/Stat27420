@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression, LogisticRegressionCV, RidgeClassifier, RidgeClassifierCV
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -71,7 +71,7 @@ baseline_mse_rf = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test
 print(f"Test MSE of no-covariate model {baseline_mse_rf}")
 
 # gradient boosting 
-xgb_Q = XGBClassifier().fit(X_train, Y_train)
+xgb_Q = XGBRegressor().fit(X_train, Y_train)
 XGB_Y_Pred = xgb_Q.predict(X_test)
 
 test_mse_xgb = mean_squared_error(XGB_Y_Pred, Y_test)
@@ -150,22 +150,25 @@ print(f"Test CE of fit model {test_cross_entropy}")
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
-# linear regression 
-regression_g = LogisticRegression(max_iter=1000).fit(X_train, A_train)
-regression_A_Pred = regression_g.predict_proba(X_test)
-print(f"Test CE of fit model {test_cross_entropy}") 
+# logistic regression 
+regression_g = LogisticRegressionCV(max_iter=1000).fit(X_train, A_train)
+regression_A_Pred = regression_g.predict(X_test)
 test_cross_entropy = log_loss(A_test, regression_A_Pred)
+print(f"Test CE of fit model {test_cross_entropy}") 
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
-# we choose the XGB model for the propensity score 
 
-#g_model = XGBClassifier().fit(X_train, A_train)
+g_model = XGBClassifier().fit(X_train, A_train)
+
+X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
+Q_model = XGBRegressor().fit(X_train, Y_train)
 
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
     kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_SEED)
 
-    for train_indx, test_index in kf.split(X,A):
+
+    for train_index, test_index in kf.split(X,A):
         X_train = X.loc[train_index]
         A_train = A.loc[train_index]
         g = make_model()
@@ -192,6 +195,8 @@ def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.arra
     X1 = X_w_treatment.copy()
     X1["A"] = 1
 
+    
+
     for train_index, test_index in kf.split(X_w_treatment, y):
         X_train = X_w_treatment.loc[train_index]
         y_train = y.loc[train_index]
@@ -209,13 +214,13 @@ def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.arra
     assert np.isnan(predictions1).sum() == 0
     return predictions0, predictions1
 
-#g = treatment_k_fold_fit_predict(make_g_model, X=confounders, A=treatment, n_splits=10)
 
-#Q0,Q1=outcome_k_fold_fit_predict(make_Q_model, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
+g = treatment_k_fold_fit_predict(g_model, X=confounders, A=treatment, n_splits=7)
 
-#data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
-#data_nuisance_estimates.head()
+Q0,Q1=outcome_k_fold_fit_predict(Q_model, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
 
+data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
+data_nuisance_estimates.head()
 
 
 # Double ML estimator for ATT
@@ -238,11 +243,11 @@ def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     
     return tau_hat, std_hat
 
-#in_treated = data_nuisance_estimates['A']==1
-#treated_estimates = data_nuisance_estimates[in_treated]
-#tau_hat, std_hat = ate_aiptw(**treated_estimates)
+in_treated = data_nuisance_estimates['A']==1
+treated_estimates = data_nuisance_estimates[in_treated]
+tau_hat, std_hat = ate_aiptw(**treated_estimates)
 
-#print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
+print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
 
@@ -262,10 +267,9 @@ outcome[treatment==1].mean()-outcome[treatment==0.mean()]
 # create covariate groups 
 
 covariate_groups = {
-    'economic':
-    'population':
-    'age':
-    'health':
+    'economic': "Per Capita Income" "Hardship Index", "Below Poverty Level"
+    'population': "Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide)"
+    'age': "Males_age_15-25"
 }
 
 # refit models for each covariate group 
@@ -275,8 +279,8 @@ nuisance_estimates = {}
 for group, covariates in covariate_groups.items():
     remaining_confounders = confounders.drop(columns=covariates)
 
-    g = treatment_k_fold_fit_predict(make_g_model, X=remaining_confounders)
-    Q0, Q1 = outcome_k_fold_fit_predict(make_Q_model, X=remaining_confounders)
+    g = treatment_k_fold_fit_predict(g_model, X=remaining_confounders)
+    Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=remaining_confounders)
     data_nuisance_estimates = pd.DataFrame(({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome}))
     nuisance_estimates[group] = data_nuisance_estimates
 
