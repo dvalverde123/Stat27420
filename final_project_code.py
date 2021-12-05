@@ -90,7 +90,7 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
 def make_Q_model():
-    return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
+    return LinearRegression().fit(X_train, Y_train)
 
 Q_model = make_Q_model()
 
@@ -164,7 +164,7 @@ baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
 def make_g_model():
-    return RandomForestClassifier(n_estimators=100, max_depth=2)
+    return LogisticRegressionCV(max_iter=1000).fit(X_train, A_train)
 
 g_model = make_g_model()
 
@@ -284,8 +284,8 @@ covariate_groups = {
 
 # for each covariate group, refit models without using that group 
 nuisance_estimates = {}
-for group, covariates in covariate_groups.items():
-    remaining_confounders = confounders.drop(columns=covariates)
+for group, covs in covariate_groups.items():
+    remaining_confounders = confounders.drop(columns=covs)
 
     g = treatment_k_fold_fit_predict(make_g_model, X=remaining_confounders, A=treatment, n_splits=5)
     Q0, Q1 = outcome_k_fold_fit_predict(make_Q_model, X=remaining_confounders, y=outcome, A=treatment, n_splits=5, output_type="continuous")
@@ -311,7 +311,7 @@ austen_data_nuisance.to_csv(data_nuisance_path, index=False)
 pathlib.Path(covariate_dir_path).mkdir(exist_ok=True)
 for group, nuisance_estimate in nuisance_estimates.items():
     austen_nuisance_estimate = convert_to_austen_format(nuisance_estimate)
-    austen_nuisance_estimate.to_csv(os.path.join(covariate_dir_path+'.csv'), index=False)
+    austen_nuisance_estimate.to_csv(os.path.join(covariate_dir_path, groups+'.csv'), index=False)
 
 # Austen Plots 
 target_bias = 2500
