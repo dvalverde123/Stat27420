@@ -11,7 +11,8 @@ import os
 import matplotlib as plt
 import xgboost as xgb
 from xgboost import XGBClassifier, XGBRegressor
-#from austen_plots.AustenPlot import AustenPlot
+import pathlib
+from austen_plots.AustenPlot import AustenPlot
 #from doubleml import DoubleMLData
 #from doubleml import DoubleMLPLR
 
@@ -35,7 +36,7 @@ def define_variables(year):
 
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
-    confounders = crime_data[["Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide)", 
+    confounders = crime_data[["Birth Rate", "Pop_" + year, "Assault (Homicide)", 
         "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"]]
 
     return treatment, outcome, confounders
@@ -89,16 +90,14 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
 def make_Q_model():
-    return XGBRegressor()
+    return XGBRegressor
 
 Q_model = make_Q_model()
 
-# diff in diff data cleaning 
 
 # diff in diff data cleaning 
 
 # 2004 school closings 
-
 # before period
 
 """
@@ -164,9 +163,13 @@ print(f"Test CE of logistic regression model {test_cross_entropy}")
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
+def make_g_model():
+    return XGBClassifier
+
+g_model = make_g_model()
+
 
 # Use cross fitting to get predicted outcomes and propensity scores for each unit
-
 def treatment_k_fold_fit_predict(make_model, X:pd.DataFrame, A:np.array, n_splits:int):
     predictions = np.full_like(A, np.nan, dtype=float)
     kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_SEED)
@@ -215,17 +218,15 @@ def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.arra
     assert np.isnan(predictions1).sum() == 0
     return predictions0, predictions1
 
-
 g = treatment_k_fold_fit_predict(XGBClassifier, X=confounders, A=treatment, n_splits=7)
 
-Q0,Q1=outcome_k_fold_fit_predict(XGBRegressor, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
+Q0, Q1 = outcome_k_fold_fit_predict(XGBRegressor, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
 
 data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
 data_nuisance_estimates.head()
 
 
 # Double ML estimator for ATT
-
 def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     if prob_t is None:
         prob_t = A.mean()
@@ -240,6 +241,7 @@ def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
 
 tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
 print(f"The ATT estimate is {tau_hat} pm {1.96*std_hat}")
+
 
 # Double ML estimator for ATE 
 def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
@@ -257,17 +259,15 @@ tau_hat, std_hat = ate_aiptw(**treated_estimates)
 print(f"The ATE estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
-
-"""
-
-# Differences in Differences Estimation 
-
-tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
-print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
+g = data_nuisance_estimates['g']
+in_overlap_popluation = (g < 0.90)
+overlap_data_and_nuisance = data_nuisance_estimates[in_overlap_popluation]
+tau_hat, std_hat = att_aiptw(**overlap_data_and_nuisance)
+print(f"The ATT estimate with restricted population is {tau_hat} pm {1.96*std_hat}")
 
 # point estimate without covariate correction
+outcome[treatment==1].mean()-outcome[treatment==0].mean()
 
-outcome[treatment==1].mean()-outcome[treatment==0.mean()]
 """
 
 # Sensitivity Analysis
@@ -276,26 +276,32 @@ outcome[treatment==1].mean()-outcome[treatment==0.mean()]
 
 """
 
+<<<<<<< HEAD
 covariate_groups = {
     'economic': "Per Capita Income" "Hardship Index", "Below Poverty Level"
     'population': "Birth Rate", "Pop_" + str(outcome_year) "Assault (Homicide)"
     #'age': "Males_age_15-25"
 }
+=======
+year = "2004"
+>>>>>>> d09a36bac301157d9a6606a02a1c561ee60b2207
 
-# refit models for each covariate group 
+covariate_groups = {
+    'economic': ["Per Capita Income", "HARDSHIP INDEX", "Below Poverty Level"],
+    'population': ["Birth Rate", "Pop_" + year, "Assault (Homicide)"]}
 
+# for each covariate group, refit models without using that group 
 nuisance_estimates = {}
-
 for group, covariates in covariate_groups.items():
     remaining_confounders = confounders.drop(columns=covariates)
 
-    g = treatment_k_fold_fit_predict(g_model, X=remaining_confounders)
-    Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=remaining_confounders)
+    g = treatment_k_fold_fit_predict(XGBClassifier, X=remaining_confounders, A=treatment, n_splits=5)
+    Q0, Q1 = outcome_k_fold_fit_predict(XGBRegressor, X=remaining_confounders, y=outcome, A=treatment, n_splits=5, output_type="continuous")
     data_nuisance_estimates = pd.DataFrame(({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome}))
     nuisance_estimates[group] = data_nuisance_estimates
 
 data_nuisance_path = 'data_nuisance_estimates.csv'
-covariate_direct_path = 'covariates/'
+covariate_dir_path = 'covariates/'
 
 def convert_to_austen_format(nuisance_estimate_df: pd.DataFrame):
     austen_df = pd.DataFrame()
@@ -305,8 +311,10 @@ def convert_to_austen_format(nuisance_estimate_df: pd.DataFrame):
     A = nuisance_estimate_df['A']
     austen_df['Q']=A*nuisance_estimate_df['Q1'] + (1-A)*nuisance_estimate_df['Q0']
 
-austen_data_nuisance = convert_to_austen_format(data_nuisance_estimate)
-austen_data_and_nuisance.to_csv(data_and_nuisance_apth, index=False)
+    return austen_df
+
+austen_data_nuisance = convert_to_austen_format(data_nuisance_estimates)
+austen_data_nuisance.to_csv(data_nuisance_path, index=False)
 
 pathlib.Path(covariate_dir_path).mkdir(exist_ok=True)
 for group, nuisance_estimate in nuisance_estimates.items():
@@ -317,9 +325,8 @@ for group, nuisance_estimate in nuisance_estimates.items():
 target_bias = 15.0 
 
 
-austen_plot = AustenPlot(data_nuisance, covariate_path)
-p, plot_cooredinates, variable_coordinates = austen_plot.fit(bias = target_bias)
+ap = AustenPlot(data_nuisance_path, covariate_dir_path)
+p, plot_coords, variable_coords = ap.fit(bias=target_bias)
 p
 
-"""
 
