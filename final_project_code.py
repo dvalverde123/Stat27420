@@ -90,7 +90,7 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
 def make_Q_model():
-    return XGBRegressor
+    return LinearRegression()
 
 Q_model = make_Q_model()
 
@@ -141,7 +141,7 @@ confounders = compact_df[['all of them']]
 X_train, X_test, A_train, A_test = train_test_split(confounders, treatment)
 
 # random forest 
-random_forest_g= RandomForestClassifier(n_estimators=100, max_depth=2)
+random_forest_g = RandomForestClassifier(n_estimators=100, max_depth=2)
 random_forest_g.fit(X_train, A_train)
 RF_A_Pred = random_forest_g.predict_proba(X_test)[:,1]
 test_cross_entropy = log_loss(A_test, RF_A_Pred)
@@ -164,7 +164,7 @@ baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
 def make_g_model():
-    return XGBClassifier
+    return RandomForestClassifier(n_estimators=100, max_depth=2)
 
 g_model = make_g_model()
 
@@ -218,9 +218,9 @@ def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.arra
     assert np.isnan(predictions1).sum() == 0
     return predictions0, predictions1
 
-g = treatment_k_fold_fit_predict(XGBClassifier, X=confounders, A=treatment, n_splits=7)
+g = treatment_k_fold_fit_predict(make_g_model, X=confounders, A=treatment, n_splits=7)
 
-Q0, Q1 = outcome_k_fold_fit_predict(XGBRegressor, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
+Q0, Q1 = outcome_k_fold_fit_predict(make_Q_model, X=confounders, y=outcome, A=treatment, n_splits=10, output_type='continuous')
 
 data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
 data_nuisance_estimates.head()
@@ -287,8 +287,8 @@ nuisance_estimates = {}
 for group, covariates in covariate_groups.items():
     remaining_confounders = confounders.drop(columns=covariates)
 
-    g = treatment_k_fold_fit_predict(XGBClassifier, X=remaining_confounders, A=treatment, n_splits=5)
-    Q0, Q1 = outcome_k_fold_fit_predict(XGBRegressor, X=remaining_confounders, y=outcome, A=treatment, n_splits=5, output_type="continuous")
+    g = treatment_k_fold_fit_predict(make_g_model, X=remaining_confounders, A=treatment, n_splits=5)
+    Q0, Q1 = outcome_k_fold_fit_predict(make_Q_model, X=remaining_confounders, y=outcome, A=treatment, n_splits=5, output_type="continuous")
     data_nuisance_estimates = pd.DataFrame(({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome}))
     nuisance_estimates[group] = data_nuisance_estimates
 
@@ -314,7 +314,7 @@ for group, nuisance_estimate in nuisance_estimates.items():
     austen_nuisance_estimate.to_csv(os.path.join(covariate_dir_path+'.csv'), index=False)
 
 # Austen Plots 
-target_bias = 15.0 
+target_bias = 3000
 
 
 ap = AustenPlot(data_nuisance_path, covariate_dir_path)
