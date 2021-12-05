@@ -90,7 +90,7 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
 def make_Q_model():
-    return LinearRegression()
+    return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
 
 Q_model = make_Q_model()
 
@@ -314,7 +314,7 @@ for group, nuisance_estimate in nuisance_estimates.items():
     austen_nuisance_estimate.to_csv(os.path.join(covariate_dir_path+'.csv'), index=False)
 
 # Austen Plots 
-target_bias = 3000
+target_bias = 2500
 
 
 ap = AustenPlot(data_nuisance_path, covariate_dir_path)
