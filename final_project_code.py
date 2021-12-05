@@ -94,7 +94,9 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 def make_Q_model():
     return XGBRegressor()
 Q_model = make_Q_model()
+
 # diff in diff data cleaning 
+
 '''
 # 2004 school closings 
 
@@ -143,23 +145,21 @@ random_forest_g= RandomForestClassifier(n_estimators=100, max_depth=2)
 random_forest_g.fit(X_train, A_train)
 RF_A_Pred = random_forest_g.predict_proba(X_test)[:,1]
 test_cross_entropy = log_loss(A_test, RF_A_Pred)
-print(f"Test CE of fit model {test_cross_entropy}") 
-baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
-print(f"Test CE of no-covariate model {baseline_cross_entropy}")
+print(f"Test CE of random forest model {test_cross_entropy}") 
 
 # gradient boosting 
 xgb_g = XGBClassifier().fit(X_train, A_train)
 XGB_A_Pred = xgb_g.predict_proba(X_test)
 test_cross_entropy = log_loss(A_test, XGB_A_Pred)
-print(f"Test CE of fit model {test_cross_entropy}") 
-baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
-print(f"Test CE of no-covariate model {baseline_cross_entropy}")
+print(f"Test CE of gradient boosting model {test_cross_entropy}") 
 
 # logistic regression 
 regression_g = LogisticRegressionCV(max_iter=1000).fit(X_train, A_train)
 regression_A_Pred = regression_g.predict(X_test)
 test_cross_entropy = log_loss(A_test, regression_A_Pred)
-print(f"Test CE of fit model {test_cross_entropy}") 
+print(f"Test CE of logistic regression model {test_cross_entropy}") 
+
+# baseline CE
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
@@ -209,8 +209,6 @@ def outcome_k_fold_fit_predict(make_model, X:pd.DataFrame, y:np.array, A:np.arra
     X1 = X_w_treatment.copy()
     X1["A"] = 1
 
-    
-
     for train_index, test_index in kf.split(X_w_treatment, y):
         X_train = X_w_treatment.loc[train_index]
         y_train = y.loc[train_index]
@@ -238,22 +236,26 @@ data_nuisance_estimates.head()
 
 
 # Double ML estimator for ATT
-"""
 def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     if prob_t is None:
         prob_t = A.mean()
-    tau_hat = (A*(Y-Q0) - (1-A)*(g/(1-g))*(Y-Q0) - tau_hat*A) / prob_t
+
+    tau_hat = (A*(Y-Q0) - (1-A)*(g/(1-g))*(Y-Q0)).mean()/ prob_t
+
+    scores = (A*(Y-Q0) - (1-A)*(g/(1-g))*(Y-Q0) - tau_hat*A) / prob_t
     n = Y.shape[0]
     std_hat = np.std(scores) / np.sqrt(n)
     
     return tau_hat, std_hat
-"""
+
+tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
+print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 
 # Double ML estimator for ATE 
 def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     tau_hat = (Q1-Q0 + A*(Y-Q1)/g - (1-A) * (Y-Q0)/(1-g)).mean()
     
-    scores = Q1 - Q0 + A*(Y-Q1)/g - (1-A) * (Y-Q0)(1-g) - tau_hat
+    scores = Q1 - Q0 + A*(Y-Q1)/g - (1-A) * (Y-Q0)/(1-g) - tau_hat
     n = Y.shape[0]
     std_hat = np.std(scores) / np.sqrt(n)
     
@@ -262,7 +264,6 @@ def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
 in_treated = data_nuisance_estimates['A']==1
 treated_estimates = data_nuisance_estimates[in_treated]
 tau_hat, std_hat = ate_aiptw(**treated_estimates)
-
 print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 
 # address overlap issues here 
