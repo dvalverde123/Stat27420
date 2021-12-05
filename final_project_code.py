@@ -91,6 +91,7 @@ print(f"Test MSE of no-covariate model {baseline_mse_knn}")
 
 # XGB gives lowest MSE, so we choose XGB model for conditional expected outcome
 
+<<<<<<< HEAD
 def make_Q_model():
     return XGBRegressor()
 Q_model = make_Q_model()
@@ -98,6 +99,10 @@ Q_model = make_Q_model()
 # diff in diff data cleaning 
 
 '''
+=======
+# diff in diff data cleaning 
+
+>>>>>>> 5a51e23225fe347f71ce80eb697863be1c792f7a
 # 2004 school closings 
 
 # before period
@@ -133,8 +138,6 @@ compact_df = compact_df.reset_index()
 outcome = compact_df['2018-2013']
 treatment = compact_df['2013_closed']
 confounders = compact_df[['all of them']]
-'''
-
 
 # propensity scores model
 
@@ -163,18 +166,6 @@ print(f"Test CE of logistic regression model {test_cross_entropy}")
 baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
 print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
-
-def make_G_model():
-    return XGBClassifier()
-g_model = make_G_model()
-
-#X_train, X_test, Y_train, Y_test = train_test_split(X_w_treatment, outcome, test_size=0.2)
-#Q_model = XGBRegressor().fit(X_train, Y_train)
-
-
-# we choose the XGB model for the propensity score 
-
-#g_model = XGBClassifier().fit(X_train, A_train)
 
 # Use cross fitting to get predicted outcomes and propensity scores for each unit
 
@@ -236,6 +227,10 @@ data_nuisance_estimates.head()
 
 
 # Double ML estimator for ATT
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5a51e23225fe347f71ce80eb697863be1c792f7a
 def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     if prob_t is None:
         prob_t = A.mean()
@@ -247,9 +242,12 @@ def att_aiptw(Q0, Q1, g, A, Y, prob_t=None):
     std_hat = np.std(scores) / np.sqrt(n)
     
     return tau_hat, std_hat
+<<<<<<< HEAD
 
 tau_hat, std_hat = att_aiptw(**data_nuisance_estimates)
 print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
+=======
+>>>>>>> 5a51e23225fe347f71ce80eb697863be1c792f7a
 
 # Double ML estimator for ATE 
 def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
@@ -278,6 +276,7 @@ print(f"The estimate is {tau_hat} pm {1.96*std_hat}")
 # point estimate without covariate correction
 
 outcome[treatment==1].mean()-outcome[treatment==0.mean()]
+"""
 
 # Sensitivity Analysis
 
@@ -286,7 +285,7 @@ outcome[treatment==1].mean()-outcome[treatment==0.mean()]
 covariate_groups = {
     'economic': "Per Capita Income" "Hardship Index", "Below Poverty Level"
     'population': "Birth Rate", "Pop_" + str(outcome_year), "Assault (Homicide)"
-    'age': "Males_age_15-25"
+    #'age': "Males_age_15-25"
 }
 
 # refit models for each covariate group 
