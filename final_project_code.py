@@ -165,7 +165,7 @@ def find_g_model(treatment, outcome, confounders):
         Prints out CE under each model
     """
 
-    X_train, X_test, A_train, A_test = train_test_split(confounders, treatment, test_size=0.2, stratify=treatment)
+    X_train, X_test, A_train, A_test = train_test_split(confounders, treatment, test_size=0.2)
 
     # random forest 
     random_forest_g = RandomForestClassifier(n_estimators=100, max_depth=2)
