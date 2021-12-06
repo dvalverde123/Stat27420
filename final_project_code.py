@@ -3,7 +3,7 @@ import pandas as pd
 import scipy as sp
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression, LogisticRegression, LogisticRegressionCV, RidgeClassifier, RidgeClassifierCV
-from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neighbors import KNeighborsRegressor, KNeighborsClassifier
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 from sklearn.metrics import mean_squared_error, log_loss
 import sklearn
@@ -131,7 +131,6 @@ def find_Q_model(treatment, outcome, confounders):
     # k nearest neighbors 
     knn_Q = KNeighborsRegressor().fit(X_train, Y_train)
     knn_Y_Pred = knn_Q.predict(X_test)
-
     test_mse_knn = mean_squared_error(knn_Y_Pred, Y_test)
     print(f"Test MSE of k-nearest neighbors model {test_mse_knn}")
 
@@ -139,12 +138,10 @@ def find_Q_model(treatment, outcome, confounders):
     baseline_mse = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
     print(f"Test MSE of no-covariate model {baseline_mse}")
 
-    if min(test_mse_rf, test_mse_xgb, test_mse_knn) == test_mse_rf:
+    if min(test_mse_rf, test_mse_xgb) == test_mse_rf:
         return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
-    elif min(test_mse_rf, test_mse_xgb, test_mse_knn) == test_mse_xgb:
-        return XGBRegressor()
     else:
-        return KNeighborsRegressor()
+        return XGBRegressor()
 
 
 def find_g_model(treatment, outcome, confounders):
@@ -176,9 +173,15 @@ def find_g_model(treatment, outcome, confounders):
 
     # logistic regression 
     regression_g = LogisticRegressionCV(solver = "liblinear", max_iter=1000).fit(X_train, A_train)
-    regression_A_Pred = regression_g.predict(X_test)
+    regression_A_Pred = regression_g.predict_proba(X_test)
     test_ce_lr = log_loss(A_test, regression_A_Pred)
     print(f"Test CE of logistic regression model {test_ce_lr}") 
+
+    # k nearest neighbors 
+    knn_Q = KNeighborsClassifier().fit(X_train, A_train)
+    knn_A_Pred = knn_Q.predict_proba(X_test)
+    test_ce_knn = log_loss(A_test, knn_A_Pred)
+    print(f"Test CE of k-nearest neighbors model {test_ce_knn}")
 
     # baseline CE
     baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
