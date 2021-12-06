@@ -83,7 +83,8 @@ def define_variables(year):
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
     confounders = crime_data[["Birth Rate", "Pop_" + year, "Assault (Homicide)", 
-        "Below Poverty Level", "Per Capita Income", "Unemployment", "Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
+        "Below Poverty Level", "Per Capita Income", "Unemployment", "Males_15_25", 
+        "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
 
     return treatment, outcome, confounders
 
@@ -302,7 +303,8 @@ def sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model
         remaining_confounders = confounders.drop(columns=covs)
 
         g = treatment_k_fold_fit_predict(g_model, X=remaining_confounders, A=treatment, n_splits=5)
-        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=remaining_confounders, y=outcome, A=treatment, n_splits=5, output_type="continuous")
+        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=remaining_confounders, \
+            y=outcome, A=treatment, n_splits=5, output_type="continuous")
         data_nuisance_estimates = pd.DataFrame(({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome}))
         nuisance_estimates[group] = data_nuisance_estimates
 
