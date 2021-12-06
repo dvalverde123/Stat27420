@@ -138,10 +138,14 @@ def find_Q_model(treatment, outcome, confounders):
     baseline_mse = mean_squared_error(Y_train.mean()*np.ones_like(Y_test), Y_test)
     print(f"Test MSE of no-covariate model {baseline_mse}")
 
-    if min(test_mse_rf, test_mse_xgb) == test_mse_rf:
+    if min(test_mse_rf, test_mse_xgb, test_mse_lr, test_mse_knn) == test_mse_rf:
         return RandomForestRegressor(random_state=RANDOM_SEED, n_estimators=500, max_depth=None)
-    else:
+    elif min(test_mse_rf, test_mse_xgb, test_mse_lr, test_mse_knn) == test_mse_xgb:
         return XGBRegressor()
+    elif min(test_mse_rf, test_mse_xgb, test_mse_lr, test_mse_knn) == test_mse_lr:
+        return LinearRegression()
+    else:
+        return KNeighborsRegressor()
 
 
 def find_g_model(treatment, outcome, confounders):
@@ -187,12 +191,14 @@ def find_g_model(treatment, outcome, confounders):
     baseline_cross_entropy = log_loss(A_test, A_train.mean()*np.ones_like(A_test))
     print(f"Test CE of no-covariate model {baseline_cross_entropy}")
 
-    if min(test_ce_rf, test_ce_xgb, test_ce_lr) == test_ce_rf:
+    if min(test_ce_rf, test_ce_xgb, test_ce_lr, test_ce_knn) == test_ce_rf:
         return RandomForestClassifier(n_estimators=100, max_depth=2)
     elif min(test_ce_rf, test_ce_xgb, test_ce_lr) == test_ce_xgb:
         return XGBClassifier()
-    else:
+    elif min(test_ce_rf, test_ce_xgb, test_ce_lr, test_ce_knn) == test_ce_lr:
         return LogisticRegressionCV(max_iter=1000)
+    else:
+        return KNeighborsClassifier()
 
 
 # Use cross fitting to get predicted outcomes and propensity scores for each unit
