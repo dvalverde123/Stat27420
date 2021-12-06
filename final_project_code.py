@@ -24,10 +24,8 @@ np.random.seed(RANDOM_SEED)
 def find_estimators(year):
     """
     Finds ATT and ATE estimator under diff in diff for given year of school closings
-
     Input:
         year (string): year of school closing
-
     Returns:
         Prints ATT and ATE
     """
@@ -71,7 +69,6 @@ def find_estimators(year):
 def define_variables(year):
     """
     Define treatment and outcome for a given year
-
     Input:
         year (string): year of school closing
     
@@ -87,8 +84,7 @@ def define_variables(year):
     outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
     confounders = crime_data[["Birth Rate", "Pop_" + year, "Assault (Homicide)", 
         "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX", 
-        "Males_15_25", "Females_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", 
-        "ONLY_ENGLISH", "NOT_ENGLISH"]]
+        "Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
 
     return treatment, outcome, confounders
 
@@ -98,12 +94,10 @@ def find_Q_model(treatment, outcome, confounders):
     Finds model for conditional expected outcome that minimizes MSE, comparing
     random forest, gradient boosting, linear regression, k nearest neighbors,
     and baseline
-
     Inputs:
         treatment
         outcome
         confounders
-
     Returns:
         Prints out MSE under each model
     """
@@ -157,12 +151,10 @@ def find_g_model(treatment, outcome, confounders):
     """
     Finds model for propensity score that minimizes cross entropy, comparing
     random forest, gradient boosting, logistic regression, and baseline
-
     Inputs:
         treatment
         outcome
         confounders
-
     Returns:
         Prints out CE under each model
     """
@@ -281,13 +273,11 @@ def ate_aiptw(Q0, Q1, g, A, Y, prob_t=None):
 def sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model):
     """
     Perform Austen Plots sensitivity analysis
-
     Input:
         treatment
         outcome
         confounders
         year (string)
-
     Return:
         plot
     """
@@ -295,8 +285,8 @@ def sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model
     covariate_groups = {
         'economic': ["Per Capita Income", "HARDSHIP INDEX", "Below Poverty Level"],
         'population': ["Birth Rate", "Pop_" + year, "Assault (Homicide)"], 
-        'demographics': ["Males_15_25", "Females_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN"],
-        'language': ["ONLY_ENGLISH", "NOT_ENGLISH"]}
+        'demographics': ["Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN"],
+        'language': "NOT_ENGLISH"}
 
     # for each covariate group, refit models without using that group 
     nuisance_estimates = {}
@@ -337,5 +327,3 @@ def convert_to_austen_format(nuisance_estimate_df: pd.DataFrame):
     austen_df['Q']=A*nuisance_estimate_df['Q1'] + (1-A)*nuisance_estimate_df['Q0']
 
     return austen_df
-
-
