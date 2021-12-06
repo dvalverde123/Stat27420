@@ -24,10 +24,11 @@ np.random.seed(RANDOM_SEED)
 def find_estimators(year):
     """
     Finds ATT and ATE estimator under diff in diff for given year of school closings
+    
     Input:
         year (string): year of school closing
     Returns:
-        Prints ATT and ATE
+        Prints ATT and ATE and performs Austen plots
     """
 
     treatment, outcome, confounders = define_variables(year)
@@ -44,9 +45,11 @@ def find_estimators(year):
     data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
     data_nuisance_estimates.head()
 
+    # finds ATT estimate
     tau_hat_att, std_hat_att = att_aiptw(**data_nuisance_estimates)
     print(f"The ATT estimate is {tau_hat_att} pm {1.96*std_hat_att}")
 
+    # finds ATE estimate
     in_treated = data_nuisance_estimates['A']==1
     treated_estimates = data_nuisance_estimates[in_treated]
     tau_hat_ate, std_hat_ate = ate_aiptw(**treated_estimates)
