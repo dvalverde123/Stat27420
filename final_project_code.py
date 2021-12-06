@@ -83,8 +83,7 @@ def define_variables(year):
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
     confounders = crime_data[["Birth Rate", "Pop_" + year, "Assault (Homicide)", 
-        "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX", 
-        "Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
+        "Below Poverty Level", "Per Capita Income", "Unemployment", "Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
 
     return treatment, outcome, confounders
 
@@ -292,7 +291,7 @@ def sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model
     """
 
     covariate_groups = {
-        'economic': ["Per Capita Income", "HARDSHIP INDEX", "Below Poverty Level"],
+        'economic': ["Per Capita Income", "Below Poverty Level"],
         'population': ["Birth Rate", "Pop_" + year, "Assault (Homicide)"], 
         'demographics': ["Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN"],
         'language': "NOT_ENGLISH"}
