@@ -340,3 +340,9 @@ def convert_to_austen_format(nuisance_estimate_df: pd.DataFrame):
     austen_df['Q']=A*nuisance_estimate_df['Q1'] + (1-A)*nuisance_estimate_df['Q0']
 
     return austen_df
+
+def parallel_trends(Q0, Q1):
+    n = 77
+    diff = (1/n) * sum(Q1 - Q0)
+
+    return diff
