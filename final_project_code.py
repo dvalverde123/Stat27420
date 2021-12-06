@@ -175,7 +175,7 @@ def find_g_model(treatment, outcome, confounders):
     print(f"Test CE of gradient boosting model {test_ce_xgb}") 
 
     # logistic regression 
-    regression_g = LogisticRegressionCV(max_iter=1000).fit(X_train, A_train)
+    regression_g = LogisticRegressionCV(solver = "liblinear", max_iter=1000).fit(X_train, A_train)
     regression_A_Pred = regression_g.predict(X_test)
     test_ce_lr = log_loss(A_test, regression_A_Pred)
     print(f"Test CE of logistic regression model {test_ce_lr}") 
