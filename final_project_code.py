@@ -86,7 +86,9 @@ def define_variables(year):
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
     confounders = crime_data[["Birth Rate", "Pop_" + year, "Assault (Homicide)", 
-        "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX"]]
+        "Below Poverty Level", "Per Capita Income", "Unemployment", "HARDSHIP INDEX", 
+        "Males_15_25", "Females_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", 
+        "ONLY_ENGLISH", "NOT_ENGLISH"]]
 
     return treatment, outcome, confounders
 
@@ -292,7 +294,9 @@ def sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model
 
     covariate_groups = {
         'economic': ["Per Capita Income", "HARDSHIP INDEX", "Below Poverty Level"],
-        'population': ["Birth Rate", "Pop_" + year, "Assault (Homicide)"]}
+        'population': ["Birth Rate", "Pop_" + year, "Assault (Homicide)"], 
+        'demographics': ["Males_15_25", "Females_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN"],
+        'language': ["ONLY_ENGLISH", "NOT_ENGLISH"]}
 
     # for each covariate group, refit models without using that group 
     nuisance_estimates = {}
