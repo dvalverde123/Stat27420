@@ -70,24 +70,25 @@ def find_estimators(year):
 
     # test conditional parallel trends
     expected_treated = []
-    outcome_treated = []
+    year_treated = []
     expected_untreated = []
-    outcome_untreated = []
+    year_untreated = []
+
     for i in range(2002,2013):
         year = str(i)
-        treatment, outcome, confounders = define_variables(year)
+        treatment_pt, outcome_pt, confounders = define_variables(year)
         Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=confounders, y=outcome, \
             A=treatment, n_splits=10, output_type='continuous')
         Q = Q1-Q0
         if treatment == 1:
             expected_treated.append(Q)
-            outcome_treated.append(outcome)
+            year_treated.append(i)
         else:
             expected_untreated.append(Q)
-            outcome_untreated.append(outcome)
+            year_untreated.append(i)
 
-        plt.plot(expected_treated, outcome_treated, label = "treated")
-        plt.plot(expected_untreated, outcome_untreated, label = "untreated")
+        plt.plot(year_treated, expected_treated, label = "treated")
+        plt.plot(year_untreated, expected_untreated, label = "untreated")
         plt.legend()
         plt.show
 
