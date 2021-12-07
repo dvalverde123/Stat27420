@@ -24,10 +24,11 @@ np.random.seed(RANDOM_SEED)
 def find_estimators(year):
     """
     Finds ATT and ATE estimator under diff in diff for given year of school closings
+    
     Input:
         year (string): year of school closing
     Returns:
-        Prints ATT and ATE
+        Prints ATT and ATE and performs Austen plots
     """
 
     treatment, outcome, confounders = define_variables(year)
@@ -44,9 +45,11 @@ def find_estimators(year):
     data_nuisance_estimates = pd.DataFrame({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
     data_nuisance_estimates.head()
 
+    # finds ATT estimate
     tau_hat_att, std_hat_att = att_aiptw(**data_nuisance_estimates)
     print(f"The ATT estimate is {tau_hat_att} pm {1.96*std_hat_att}")
 
+    # finds ATE estimate
     in_treated = data_nuisance_estimates['A']==1
     treated_estimates = data_nuisance_estimates[in_treated]
     tau_hat_ate, std_hat_ate = ate_aiptw(**treated_estimates)
@@ -83,7 +86,8 @@ def define_variables(year):
     treatment = crime_data["Treatment_" + year]
     outcome = crime_data[str(outcome_year) + "_cr_per_100k"]
     confounders = crime_data[["Birth Rate", "Pop_" + year, "Assault (Homicide)", 
-        "Below Poverty Level", "Per Capita Income", "Unemployment", "Males_15_25", "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
+        "Below Poverty Level", "Per Capita Income", "Unemployment", "Males_15_25", 
+        "MED_AGE", "WHITE", "HISP", "BLACK", "ASIAN", "NOT_ENGLISH"]]
 
     return treatment, outcome, confounders
 
@@ -302,7 +306,8 @@ def sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model
         remaining_confounders = confounders.drop(columns=covs)
 
         g = treatment_k_fold_fit_predict(g_model, X=remaining_confounders, A=treatment, n_splits=5)
-        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=remaining_confounders, y=outcome, A=treatment, n_splits=5, output_type="continuous")
+        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=remaining_confounders, \
+            y=outcome, A=treatment, n_splits=5, output_type="continuous")
         data_nuisance_estimates = pd.DataFrame(({'g': g, 'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome}))
         nuisance_estimates[group] = data_nuisance_estimates
 
@@ -335,3 +340,9 @@ def convert_to_austen_format(nuisance_estimate_df: pd.DataFrame):
     austen_df['Q']=A*nuisance_estimate_df['Q1'] + (1-A)*nuisance_estimate_df['Q0']
 
     return austen_df
+
+def parallel_trends(Q0, Q1):
+    n = 77
+    diff = (1/n) * sum(Q1 - Q0)
+
+    return diff
