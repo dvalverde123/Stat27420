@@ -68,6 +68,32 @@ def find_estimators(year):
     # perform sensitivity analysis and plot
     sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model)
 
+    # test conditional parallel trends
+    expected_treated = []
+    outcome_treated = []
+    expected_untreated = []
+    outcome_untreated = []
+    for i in range(2002,2013):
+        year = str(i)
+        treatment, outcome, confounders = define_variables(year)
+        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=confounders, y=outcome, \
+            A=treatment, n_splits=10, output_type='continuous')
+        Q = Q1-Q0
+        if treatment == 1:
+            expected_treated.append(Q)
+            outcome_treated.append(outcome)
+        else:
+            expected_untreated.append(Q)
+            outcome_untreated.append(outcome)
+
+        plt.plot(expected_treated, outcome_treated, label = "treated")
+        plt.plot(expected_untreated, outcome_untreated, label = "untreated")
+        plt.legend()
+        plt.show
+
+
+    data_nuisance_estimates = pd.DataFrame({'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
+
 
 def define_variables(year):
     """
@@ -340,9 +366,3 @@ def convert_to_austen_format(nuisance_estimate_df: pd.DataFrame):
     austen_df['Q']=A*nuisance_estimate_df['Q1'] + (1-A)*nuisance_estimate_df['Q0']
 
     return austen_df
-
-def parallel_trends(Q0, Q1):
-    n = 77
-    diff = (1/n) * sum(Q1 - Q0)
-
-    return diff
