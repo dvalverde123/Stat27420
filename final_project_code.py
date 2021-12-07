@@ -68,30 +68,6 @@ def find_estimators(year):
     # perform sensitivity analysis and plot
     sensitivity_analysis(treatment, outcome, confounders, year, g_model, Q_model)
 
-    # test conditional parallel trends
-    expected_treated = []
-    year_treated = []
-    expected_untreated = []
-    year_untreated = []
-
-    for i in range(2002,2013):
-        year = str(i)
-        treatment_pt, outcome_pt, confounders_pt = define_variables(year)
-        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=confounders_pt, y=outcome_pt, \
-            A=treatment_pt, n_splits=10, output_type='continuous')
-        Q = Q1-Q0
-        if treatment == 1:
-            expected_treated.append(Q)
-            year_treated.append(i)
-        else:
-            expected_untreated.append(Q)
-            year_untreated.append(i)
-
-        plt.plot(year_treated, expected_treated, label = "treated")
-        plt.plot(year_untreated, expected_untreated, label = "untreated")
-        plt.legend()
-        plt.show
-
 
 def define_variables(year):
     """
