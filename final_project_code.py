@@ -76,9 +76,9 @@ def find_estimators(year):
 
     for i in range(2002,2013):
         year = str(i)
-        treatment_pt, outcome_pt, confounders = define_variables(year)
-        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=confounders, y=outcome, \
-            A=treatment, n_splits=10, output_type='continuous')
+        treatment_pt, outcome_pt, confounders_pt = define_variables(year)
+        Q0, Q1 = outcome_k_fold_fit_predict(Q_model, X=confounders_pt, y=outcome_pt, \
+            A=treatment_pt, n_splits=10, output_type='continuous')
         Q = Q1-Q0
         if treatment == 1:
             expected_treated.append(Q)
@@ -91,9 +91,6 @@ def find_estimators(year):
         plt.plot(year_untreated, expected_untreated, label = "untreated")
         plt.legend()
         plt.show
-
-
-    data_nuisance_estimates = pd.DataFrame({'Q0': Q0, 'Q1': Q1, 'A': treatment, 'Y': outcome})
 
 
 def define_variables(year):
